@@ -76,7 +76,7 @@
 
  **#### 使用说明** 
 由于此项目是根据我们本学校的学生数据，牵涉数据隐私问题，暂没有数据集。
-本项目是学生分析的一个子项目，是学生行为预处理、聚类、关联分析部分，另一部分在SchoolBigDataAnalysisWeb中，此部分是画像构建、榜单功能实现、结果可视化部分。
+本项目是学生分析的一个子项目，是学生行为预处理、聚类、关联分析部分，另一部分在[SchoolBigDataAnalysisWeb](https://gitee.com/love_code_man/SchoolBigDataSystemWeb)中，此部分是画像构建、榜单功能实现、结果可视化部分。
 
 
 
