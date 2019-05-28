@@ -43,22 +43,25 @@ class EntranceGuardProcessing {
     val sparkUtils = new SparkUtils
     val spark = sparkUtils.init()
     //创建需要处理的数据的临时视图bookborrow_view
-    //第一将原始数据中的13 ，14,15,16,17,18级的数据筛选出来
-//    val sourceView = spark.sql("select * from entranceguard where XGH like '2013%' or XGH like '2014%' or XGH like '2015%' or XGH like '2016%' or XGH like '2017%' or XGH like '2018%'")
-//    sourceView.createOrReplaceTempView("entranceguard_view")
-//    //第二，有的人会没有带卡，会借给朋友耍门禁，需要将这些数据合并为一条数据，这里按照小时合并
-//    val mergeResult = spark.sql("select XGH as outid,NAME as name,min(READDATE) as readdate from entranceguard group by XGH,NAME,substring(READDATE, 0, 16)")
-//    //将每个人的进入图书馆数据保存到hive仓库中
-//    mergeResult.write.saveAsTable("entranceguard_mergeresult")
+    //数据预处理操作
+    //第一将原始数据中的13,14,15,16,17,18级的数据筛选出来
+    val sourceView = spark.sql("select * from entranceguard where XGH like '2013%' or XGH like '2014%' or XGH like '2015%' or XGH like '2016%' or XGH like '2017%' or XGH like '2018%'")
+    sourceView.createOrReplaceTempView("entranceguard_view")
+    //第二，有的人会没有带卡，会借给朋友耍门禁，需要将这些数据合并为一条数据，这里按照小时合并
+    val mergeResult = spark.sql("select XGH as outid,NAME as name,min(READDATE) as readdate from entranceguard group by XGH,NAME,substring(READDATE, 0, 16)")
+    //将每个人的进入图书馆数据保存到hive仓库中
+    mergeResult.write.saveAsTable("entranceguard_mergeresult")
     //将每个人进行数据合并
-//    val result = spark.sql("select XGH, count(*) as frequency from entranceguard_mergeResult group by XGH")
-//    result.write.saveAsTable("entranceguard_kmeanresult")
-    val mergeResult = spark.sql("select * from entranceguard_mergeresult")
+    val result = spark.sql("select XGH, count(*) as frequency from entranceguard_mergeResult group by XGH")
+    result.write.saveAsTable("entranceguard_kmeanresult")
+
+    //数据保存至Mysql中
+    val mergeResult2 = spark.sql("select * from entranceguard_mergeresult")
     val prop = new Properties()
     prop.put("user", "root")
     prop.put("password", "root")
     //将数据追加到数据库
-    mergeResult.select("outid","name","readdate").write.mode("overwrite").jdbc("jdbc:mysql://localhost:3306/schooldata", "menjin_result", prop)
+    mergeResult2.select("outid","name","readdate").write.mode("overwrite").jdbc("jdbc:mysql://localhost:3306/schooldata", "menjin_result", prop)
 
     //测试
     spark.sql("select * from entranceguard_mergeresult where outid='201508040134' limit 12").show()

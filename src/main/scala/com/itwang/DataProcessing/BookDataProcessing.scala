@@ -58,7 +58,7 @@ class BookDataProcessing {
     val sourceView = spark.sql("select * from bookborrow where termDate != '2018-2019-02' and (XH like '2013%' or XH like '2014%' or XH like '2015%' or XH like '2016%' or XH like '2017%' or XH like '2018%')")
     sourceView.createOrReplaceTempView("bookborrow_view")
 
-    //根据学号和阶数时间进行分组，计算每次借阅的小记once_view
+    //根据学号和借阅时间进行分组，计算每次借阅的小记once_view
     val onceView = spark.sql("select XH,count(*) count,to_date(JSSJ) JSSJ from bookborrow_view group by XH, to_date(JSSJ)")
     onceView.createOrReplaceTempView("once_view")
 

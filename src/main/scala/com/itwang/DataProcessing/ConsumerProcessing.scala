@@ -42,7 +42,7 @@ class ConsumerProcessing {
     spark.stop()
   }
 
-  //将一卡通消费数据进行汇总获取详细报表数据
+  //将一卡通消费数据进行汇总获取详细消费数据
   def getDetailConsume(): Unit = {
     val sparkUtils = new SparkUtils
     val spark = sparkUtils.init()
@@ -83,10 +83,10 @@ class ConsumerProcessing {
         "其他"
       }
     })
-    //创建需要处理的数据的临时视图bookborrow_view
+    //创建需要处理的数据的临时一卡通消费数据视图consume_temp_view
     val sourceView = spark.sql("select * from  m_rec_consume")
     sourceView.createOrReplaceTempView("consume_temp_view")
-    //首先对学生消费进行就餐时间分类
+    //对学生消费按照就餐时间分类
     val process_food = spark.sql("select outid,opdt,opcount,opfare,date_to_info(dscrp,opdt) as dscrp from consume_temp_view where dscrp = '餐费支出'")
     process_food.createOrReplaceTempView("temp_food_process")
     val process_else = spark.sql("select outid,opdt,opcount,opfare,date_to_info(dscrp,opdt) as dscrp from consume_temp_view where dscrp != '餐费支出'")
@@ -94,14 +94,9 @@ class ConsumerProcessing {
     //然后按照分组对学生的每次就餐可能有多次刷卡，对其进行统计
     //因为对于学生就餐，可能早、中晚会有多个窗口多个时间，所以按照天分组，每天最多有三次就餐
     val consume_food_result = spark.sql("select outid,min(opdt) as opdt,sum(opfare) as opfare,dscrp from temp_food_process group by outid,to_date(opdt),dscrp")
-    //对用餐统计详情保存为临时视图
-    //consume_food_result.createOrReplaceTempView("consume_food_result")
 
     //对于学生医疗、用水、洗浴、购物可能一天会有多次消费,特别是用水，下面按照小时进行汇总
     val consume_else_result = spark.sql("select outid,min(opdt) as opdt,sum(opfare) as opfare,dscrp from temp_else_process group by outid,substring(opdt, 0, 13),dscrp")
-    //对其他统计详情进行保存为临时视图
-    //consume_else_result.createOrReplaceTempView("consume_else_result")
-
     //对上面的小汇总进行合并
     consume_food_result.write.saveAsTable("consume_detail_result")
     consume_else_result.write.insertInto("consume_detail_result")
