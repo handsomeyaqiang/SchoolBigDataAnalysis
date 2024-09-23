@@ -107,7 +107,7 @@ class ConsumerProcessing {
   def getStatisticsData(): Unit = {
     val sparkUtils = new SparkUtils
     val spark = sparkUtils.init()
-    //将单位从分转化为元
+    //将单位从分转化为元，统计消费类型频次
     val result = spark.sql("select outid, dscrp, bround(sum(opfare)/100, 2) as total, count(*) as frequency from consume_detail_result group by outid,dscrp")
     result.write.saveAsTable("consume_student_result")
     //创建Properties存储数据库相关属性
@@ -115,7 +115,7 @@ class ConsumerProcessing {
     prop.put("user", "hadoop")
     prop.put("password", "hadoop")
     //将数据追加到数据库
-    result.write.mode("append").jdbc("jdbc:mysql://39.105.128.239:3306/wang", "consume_student_result", prop)
+    result.write.mode("append").jdbc("jdbc:mysql://39.105.128.239:3306/wang?useUnicode=true&characterEncoding=utf8", "consume_student_result", prop)
 
     //可以根据是上面计算统计的结果进行学生聚类总计得出总消费额，和总消费频次
     val consume_total_result = spark.sql("select outid, sum(total) as total, sum(frequency) as frequency from consume_student_result group by outid")

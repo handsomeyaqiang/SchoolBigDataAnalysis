@@ -24,7 +24,7 @@ class SparkUtils {
       //.master("spark://master:7077")
       .master("local[3]")
       .config("spark.sql.warehouse.dir", warehouse) //指定spark的warehouse
-      .enableHiveSupport()
+//      .enableHiveSupport()
       .getOrCreate()
     //获取SparkContext
     val sc = spark.sparkContext
@@ -48,6 +48,7 @@ class SparkUtils {
     prop.put("password", "root")
     //将数据追加到数据库
     dataFrame.write.mode("overwrite").jdbc("jdbc:mysql://localhost:3306/schooldata", "province", prop)
+    println("completed!")
     spark.stop()
   }
 }

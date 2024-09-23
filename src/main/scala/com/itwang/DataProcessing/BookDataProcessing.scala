@@ -49,8 +49,11 @@ class BookDataProcessing {
     spark.stop()
   }
 
-
-  //这里的图书借阅数据统计的是截止到2019-01-20日的数据
+  /**
+    * 从hive数据仓库中的图书借阅和图书馆门禁表中进行预处理，
+    * 得出k-means算法所需的数据格式
+    * 这里的图书借阅数据统计的是截止到2019-01-20日的数据
+    */
   def getKmeanDataProcess(): Unit = {
     val sparkUtils = new SparkUtils
     val spark = sparkUtils.init()
@@ -77,9 +80,10 @@ class BookDataProcessing {
     spark.stop()
 
   }
-  //方案一、这里是根据每个人每次借阅的书籍作为一条关联结果
+  /**
+    * 根据每个人每次借阅的书籍作为一条关联结果
+    */
   def getAprioriDataProcess(): Unit = {
-
     val sparkUtils = new SparkUtils
     val spark = sparkUtils.init()
     //创建需要处理的数据的临时视图bookborrow_view
@@ -96,7 +100,6 @@ class BookDataProcessing {
     prop.put("password", "root")
     //将数据追加到数据库
     once_items_view.write.mode("overwrite").jdbc("jdbc:mysql://localhost:3306/schooldata", "once_items_view", prop)
-
     //测试
     val result = spark.sql("select * from once_items_view where outid='201719144313'")
     result.collect.map(x => {
@@ -106,7 +109,6 @@ class BookDataProcessing {
   }
   //方案二、这里是根据每个人很多次即所有借阅作为一条关联记录
   def getAprioriDataProcess2(): Unit = {
-
     val sparkUtils = new SparkUtils
     val spark = sparkUtils.init()
     //创建需要处理的数据的临时视图bookborrow_view
